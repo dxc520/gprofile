@@ -1,0 +1,13 @@
+eureka:
+  instance:
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8000/eureka/
+    registryFetchIntervalSeconds: 10
+logging:
+  level:
+    github.com/flyleft/consul-iris/pkg/config: info
+    github.com/flyleft/consul-iris/pkg/route: debug

@@ -29,10 +29,12 @@ func Profile(profile interface{}, configFile string, envHigher bool) (interface{
 		cfg = cfg.Env().Flag()
 	}
 	// 获取生效的profile，默认dev
-	activeProfile := cfg.UString("profiles.active", "dev")
-	cfg, err = cfg.Get(activeProfile)
+	activeProfile, err := cfg.String("profiles.active")
 	if err != nil {
-		return nil, err
+		cfg, err = cfg.Get(activeProfile)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return parseYaml(profile, cfg)
 }

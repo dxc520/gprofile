@@ -17,7 +17,7 @@ type DataSource struct {
 	Password string `profile:"password"`
 }
 
-type Env struct {
+type MultiEnv struct {
 	DataSource DataSource `profile:"database"`
 	Eureka     Eureka
 	Logging    map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
@@ -25,7 +25,7 @@ type Env struct {
 }
 
 func TestProfileNoException(t *testing.T) {
-	env, err := Profile(&Env{}, "test-multi-profile.yml", true)
+	env, err := Profile(&MultiEnv{}, "test-multi-profile.yml", true)
 	if err != nil {
 		t.Error("Profile execute error", err)
 	}
@@ -34,22 +34,55 @@ func TestProfileNoException(t *testing.T) {
 
 func TestProfileActiveProfile(t *testing.T) {
 	os.Setenv("PROFILES_ACTIVE", "production")
-	env, err := Profile(&Env{}, "test-multi-profile.yml", true)
+	env, err := Profile(&MultiEnv{}, "test-multi-profile.yml", true)
 	if err != nil {
 		t.Error("Profile execute error", err)
 	}
-	trueEnv := env.(*Env)
+	trueEnv := env.(*MultiEnv)
 	fmt.Printf("Application active env: %+v\n", trueEnv)
+	if trueEnv.DataSource.Username != "production" {
+		t.Error("Active profile failed")
+	}
+
 }
 
 func TestProfileEnv(t *testing.T) {
-	os.Setenv("DEV_BASE_TESTSTRING", "TestProfileEnv")
-	os.Setenv("DEV_ENV", "AAA")
-	env, err := Profile(&Env{}, "test-multi-profile.yml", true)
+	eurekaZone := "http://192.168.1.10:8000/eureka/"
+	os.Setenv("DEV_EUREKA_ZONE", eurekaZone)
+	os.Setenv("PROFILES_ACTIVE", "dev")
+	env, err := Profile(&MultiEnv{}, "test-multi-profile.yml", true)
 	if err != nil {
 		t.Error("Profile execute error", err)
 	}
-	trueEnv := env.(*Env)
+	trueEnv := env.(*MultiEnv)
 	fmt.Printf("Application active env: %+v\n", trueEnv)
+	if trueEnv.Eureka.Zone != eurekaZone {
+		t.Error("Set value by env failed")
+	}
+}
 
+type SingleEnv struct {
+	Eureka  SingleEureka
+	Logging map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
+}
+
+type SingleEureka struct {
+	PreferIpAddress                  bool   `profile:"instance.preferIpAddress"`
+	LeaseRenewalIntervalInSeconds    int32  `profile:"instance.leaseRenewalIntervalInSeconds"`
+	LeaseExpirationDurationInSeconds uint   `profile:"instance.leaseExpirationDurationInSeconds"`
+	ServerDefaultZone                string `profile:"client.serviceUrl.defaultZone" profileDefault:"http://localhost:8000/eureka/"`
+	RegistryFetchIntervalSeconds     byte   `profile:"client.registryFetchIntervalSeconds"`
+}
+
+func TestProfileSingleEnv(t *testing.T) {
+	os.Setenv("EUREKA_INSTANCE_LEASERENEWALINTERVALINSECONDS", "99")
+	env, err := Profile(&SingleEnv{}, "test-single-profile.yml", true)
+	if err != nil {
+		t.Error("Profile execute error", err)
+	}
+	trueEnv := env.(*SingleEnv)
+	fmt.Printf("Application active env: %+v\n", trueEnv)
+	if trueEnv.Eureka.LeaseRenewalIntervalInSeconds != 99 {
+		t.Error("Set value by env failed")
+	}
 }
