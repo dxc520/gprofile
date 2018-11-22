@@ -1,0 +1,19 @@
+profiles:
+  active: dev
+
+dev:
+  database:
+    username: root
+    password: root
+  eureka:
+    zone: http://localhost:8000/eureka/
+    fetchInterval: 10
+  logging:
+    level:
+      github.com/flyleft/consul-iris/pkg/config: info
+      github.com/flyleft/consul-iris/pkg/route: debug
+
+
+production:
+  database:
+    host: 192.168.1.1
