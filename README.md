@@ -26,7 +26,7 @@ logging:
     github.com/flyleft/consul-iris/pkg/route: debug
 ```
 
-```
+```go
 type SingleEnv struct {
 	Eureka  SingleEureka
 	Logging map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
