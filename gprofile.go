@@ -54,6 +54,8 @@ func parseProfile(t reflect.Type, v reflect.Value, cfg *config.Config, prefix st
 		fieldLowerName := starterLower(typeField.Name)
 		if !pvExist {
 			pv = fieldLowerName
+		} else if pv == "_" {
+			continue
 		}
 		pv = prefix + pv
 		if valueField.Kind() == reflect.Struct {

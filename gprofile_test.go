@@ -64,6 +64,8 @@ func TestProfileEnv(t *testing.T) {
 type SingleEnv struct {
 	Eureka  SingleEureka
 	Logging map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
+	Skip    string                 `profile:"_"`
+	//SkipEureka *SingleEureka          `profile:"_"`
 }
 
 type SingleEureka struct {
@@ -82,7 +84,7 @@ func TestProfileSingleEnv(t *testing.T) {
 	}
 	trueEnv := env.(*SingleEnv)
 	fmt.Printf("Application active env: %+v\n", trueEnv)
-	if trueEnv.Eureka.LeaseRenewalIntervalInSeconds != 99 {
+	if trueEnv.Eureka.LeaseRenewalIntervalInSeconds != 99 || trueEnv.Skip != "" {
 		t.Error("Set value by env failed")
 	}
 }
