@@ -4,8 +4,8 @@
 则会根据tag中的`profile`值(不设置则为当前属性名的首字母变小写)解析YAML或flag或环境变量，并赋值；
 可通过`profile:"_"` 设置跳过设置该属性；
 若YAML或flag或环境变量都不存在，则使用tag中的`profileDefault`设置默认值；
-若默认值也未设置，则返回error。默认变量优先级啊：环境变量 > flag参数 > YAML > profileDefault默认值，
-可以通过设置envHigher未false，让flag优先级 > 环境变量。
+若默认值也未设置，则返回error。默认变量优先级：环境变量 > flag参数 > YAML > profileDefault默认值，
+可以通过设置envHigher为false，让flag优先级 > 环境变量。
 注意：**接收类型和返回类型都需要为指针类型**。
 
 
