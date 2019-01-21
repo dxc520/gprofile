@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strconv"
+	"strings"
+	"syscall"
 )
 
 func Profile(profile interface{}, configFile string, envHigher bool) (interface{}, error) {
@@ -24,9 +26,11 @@ func Profile(profile interface{}, configFile string, envHigher bool) (interface{
 	//fmt.Printf("Application config yaml:\n %s\n", yamlString)
 	// 设置环境变量、参数优先级
 	if envHigher {
-		cfg = cfg.Flag().Env()
+		cfg = cfg.Flag()
+		recursiveParseEnv(cfg, cfg.Root)
 	} else {
-		cfg = cfg.Env().Flag()
+		recursiveParseEnv(cfg, cfg.Root)
+		cfg = cfg.Flag()
 	}
 	// 获取生效的profile，默认dev
 	activeProfile, err := cfg.String("profiles.active")
@@ -42,6 +46,32 @@ func Profile(profile interface{}, configFile string, envHigher bool) (interface{
 func parseYaml(profile interface{}, cfg *config.Config) (interface{}, error) {
 	err := parseProfile(reflect.TypeOf(profile).Elem(), reflect.ValueOf(profile).Elem(), cfg, "")
 	return profile, err
+}
+
+func recursiveParseEnv(cfg *config.Config, source interface{}, base ...string) {
+	nextBase := make([]string, len(base))
+	copy(nextBase, base)
+	switch c := source.(type) {
+	case map[string]interface{}:
+		for k, v := range c {
+			recursiveParseEnv(cfg, v, append(nextBase, k)...)
+		}
+	case []interface{}:
+		k := strings.ToUpper(strings.Join(nextBase, "_"))
+		if val, exist := syscall.Getenv(k); exist {
+			splitVal := strings.Split(val, ",")
+			setVal := make([]interface{}, len(splitVal), len(splitVal))
+			for i, v := range splitVal {
+				setVal[i] = strings.Trim(v, " ")
+			}
+			_ = cfg.Set(strings.Join(nextBase, "."), setVal)
+		}
+	default:
+		k := strings.ToUpper(strings.Join(nextBase, "_"))
+		if val, exist := syscall.Getenv(k); exist {
+			_ = cfg.Set(strings.Join(nextBase, "."), val)
+		}
+	}
 }
 
 //递归遍历env

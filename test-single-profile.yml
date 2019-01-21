@@ -14,3 +14,9 @@ logging:
 test:
   - aaa
   - bbb
+register:
+  service:
+    namespace:
+      - io-choerodon
+      - staging
+profile: test

@@ -62,12 +62,13 @@ func TestProfileEnv(t *testing.T) {
 }
 
 type SingleEnv struct {
-	Eureka  SingleEureka
-	Logging map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
-	Skip    string                 `profile:"_"`
-	Test    []string               `profile:"test"`
-	Names   []string               `profile:"names" profileDefault:"[\"aaa\",\"bb\",\"你好哦\"]"`
-	//SkipEureka *SingleEureka          `profile:"_"`
+	Eureka                   SingleEureka
+	Logging                  map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
+	Skip                     string                 `profile:"_"`
+	Test                     []string               `profile:"test"`
+	Names                    []string               `profile:"names" profileDefault:"[\"aaa\",\"bb\",\"你好哦\"]"`
+	RegisterServiceNamespace []string               `profile:"register.service.namespace"`
+	Profile                  string
 }
 
 type SingleEureka struct {
@@ -79,14 +80,18 @@ type SingleEureka struct {
 }
 
 func TestProfileSingleEnv(t *testing.T) {
-	os.Setenv("EUREKA_INSTANCE_LEASERENEWALINTERVALINSECONDS", "99")
+	os.Setenv("REGISTER_SERVICE_NAMESPACE", "test, staging")
+	os.Setenv("PROFILE", "dev")
 	env, err := Profile(&SingleEnv{}, "test-single-profile.yml", true)
 	if err != nil {
 		t.Error("Profile execute error", err)
 	}
 	trueEnv := env.(*SingleEnv)
 	fmt.Printf("Application active env: %+v\n", trueEnv)
-	if trueEnv.Eureka.LeaseRenewalIntervalInSeconds != 99 || trueEnv.Skip != "" {
+	if trueEnv.Profile != "dev" {
+		t.Error("Set value by env failed")
+	}
+	if trueEnv.RegisterServiceNamespace[0] != "test" || trueEnv.RegisterServiceNamespace[1] != "staging" {
 		t.Error("Set value by env failed")
 	}
 }
