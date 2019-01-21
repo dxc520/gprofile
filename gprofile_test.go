@@ -65,6 +65,8 @@ type SingleEnv struct {
 	Eureka  SingleEureka
 	Logging map[string]interface{} `profile:"logging.level" profileDefault:"{\"github.com/flyleft/consul-iris\":\"debug\"}"`
 	Skip    string                 `profile:"_"`
+	Test    []string               `profile:"test"`
+	Names   []string               `profile:"names" profileDefault:"[\"aaa\",\"bb\",\"你好哦\"]"`
 	//SkipEureka *SingleEureka          `profile:"_"`
 }
 

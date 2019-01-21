@@ -1,14 +1,14 @@
 # [gprofile](https://github.com/flyleft/gprofile)
-一个简单的go语言配置文件库，将YAML配置自动映射到实体中, 类似与spring-boot配置文件。
-会从根实体strut遍历实体属性，如果类型为bool, string, 整型, 浮点型，map[string]interface{}，[]interface{},
-则会根据tag中的`profile`值(不设置则为当前属性名的首字母变小写)解析YAML或flag或环境变量，并赋值；
-可通过`profile:"_"` 设置跳过设置该属性；
-若YAML或flag或环境变量都不存在，则使用tag中的`profileDefault`设置默认值；
-若默认值也未设置，则返回error。默认变量优先级：环境变量 > flag参数 > YAML > profileDefault默认值，
-可以通过设置envHigher为false，让flag优先级 > 环境变量。
+> 一个简单的go语言配置文件库，将YAML配置自动映射到实体中, 类似与spring-boot配置文件。
+
+- 根实体strut遍历实体属性, 如果属性为strut则递归遍历。
+- 根据tag中的`profile`值(不设置则为当前属性名的首字母变小写)解析YAML或flag或环境变量，并赋值, 可通过`profile:"_"`跳过该属性.
+- 若YAML或flag或环境变量都不存在，则使用tag中的`profileDefault`设置默认值。
+- 默认变量优先级：环境变量 > flag参数 > YAML > profileDefault默认值
+- 支持类型: string、bool、uint、uint8、uint16、Uint32、Uint64、int、int8、int16、int32、int64、float32、float64、
+[]string、[]bool、[]uint、[]uint8、[]uint16、[]Uint32、[]Uint64、[]int、[]int8、[]int16、[]int32、[]int64、[]float32、[]float64、map[string]interface{}
+
 注意：**接收类型和返回类型都需要为指针类型**。
-
-
 
 ### 单profile下的使用：
 ```yml
@@ -113,8 +113,3 @@ func main()  {
 }
 //可通过环境变量DEV_EUREKA_ZONE覆盖eureka.zone的值
 ```
-
-
-定义实体
-
-### 使用的开源项目: [github.com/olebedev/config](https://github.com/olebedev/config)

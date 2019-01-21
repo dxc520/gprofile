@@ -157,21 +157,86 @@ func assignment(tag *reflect.StructTag, v *reflect.Value, cfg *config.Config, pv
 		}
 		v.SetFloat(n)
 	case reflect.Slice:
-		cv, err := cfg.List(pv)
-		if err == nil {
-			v.Set(reflect.ValueOf(cv))
-			return nil
+		alreadySet := false
+		switch v.Type().Elem().Kind() {
+		case reflect.Bool:
+			cv, err := cfg.List(pv)
+			if err == nil {
+				slice := make([]bool, len(cv), len(cv))
+				for i, v := range cv {
+					slice[i] = v.(bool)
+				}
+				v.Set(reflect.ValueOf(slice))
+				alreadySet = true
+				return nil
+			}
+			fallthrough
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			cv, err := cfg.List(pv)
+			if err == nil {
+				slice := reflect.MakeSlice(v.Type(), len(cv), len(cv))
+				for i, v := range cv {
+					slice.Index(i).SetInt(int64(v.(int)))
+				}
+				v.Set(slice)
+				alreadySet = true
+				return nil
+			}
+			fallthrough
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			cv, err := cfg.List(pv)
+			if err == nil {
+				slice := reflect.MakeSlice(v.Type(), len(cv), len(cv))
+				for i, v := range cv {
+					slice.Index(i).SetUint(uint64(v.(int)))
+				}
+				v.Set(slice)
+				alreadySet = true
+				return nil
+			}
+			fallthrough
+		case reflect.Float32, reflect.Float64:
+			cv, err := cfg.List(pv)
+			if err == nil {
+				slice := reflect.MakeSlice(v.Type(), len(cv), len(cv))
+				for i, v := range cv {
+					if reflect.TypeOf(v).Kind() == reflect.Float32 {
+						slice.Index(i).SetFloat(float64(v.(float32)))
+					} else if reflect.TypeOf(v).Kind() == reflect.Float64 {
+						slice.Index(i).SetFloat(v.(float64))
+					}
+				}
+				v.Set(slice)
+				alreadySet = true
+				return nil
+			}
+			fallthrough
+		case reflect.String:
+			cv, err := cfg.List(pv)
+			if err == nil {
+				slice := make([]string, len(cv), len(cv))
+				for i, v := range cv {
+					slice[i] = v.(string)
+				}
+				v.Set(reflect.ValueOf(slice))
+				alreadySet = true
+				return nil
+			}
+			fallthrough
+		default:
+			if alreadySet == false {
+				dv, dvExist := tag.Lookup("profileDefault")
+				if !dvExist {
+					return fmt.Errorf("assignment error, no default value when set value: %s", pv)
+				}
+				n := reflect.New(v.Type())
+				err := json.Unmarshal([]byte(dv), n.Interface())
+				if err != nil {
+					return fmt.Errorf("assignment error, when parse default value %s: %#v", pv, dv)
+				}
+				v.Set(n.Elem())
+			}
 		}
-		dv, dvExist := tag.Lookup("profileDefault")
-		if !dvExist {
-			return fmt.Errorf("assignment error, no default value when set value: %s", pv)
-		}
-		n := reflect.New(v.Type())
-		err = json.Unmarshal([]byte(dv), n.Interface())
-		if err != nil {
-			return fmt.Errorf("assignment error, when parse default value %s: %#v", pv, dv)
-		}
-		v.Set(n.Elem())
 	case reflect.Map:
 		cv, err := cfg.Map(pv)
 		if err == nil {

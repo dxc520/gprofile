@@ -11,3 +11,6 @@ logging:
   level:
     github.com/flyleft/consul-iris/pkg/config: info
     github.com/flyleft/consul-iris/pkg/route: debug
+test:
+  - aaa
+  - bbb
